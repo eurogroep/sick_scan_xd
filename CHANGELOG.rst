@@ -2,8 +2,8 @@
 Changelog for package sick_scan
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.9.2 (2023-09-19)
+------------------
 * fix HardwareID
 * Contributors: Tom de Winter
 
