@@ -1048,77 +1048,44 @@ namespace sick_scan
     else
     {
       result = -1;
-      uint64_t retry_start_timestamp_nsec = rosNanosecTimestampNow();
-      for(int retry_answer_cnt = 0; result != 0; retry_answer_cnt++)
+     
+      std::string answerStr = replyToString(*reply);
+      std::stringstream expectedAnswers;
+      std::vector<std::string> searchPattern = generateExpectedAnswerString(requestStr);
+
+      for(int n = 0; result != 0 && n < searchPattern.size(); n++)
       {
-        std::string answerStr = replyToString(*reply);
-        std::stringstream expectedAnswers;
-        std::vector<std::string> searchPattern = generateExpectedAnswerString(requestStr);
-
-        for(int n = 0; result != 0 && n < searchPattern.size(); n++)
+        if (answerStr.find(searchPattern[n]) != std::string::npos)
         {
-          if (answerStr.find(searchPattern[n]) != std::string::npos)
-          {
-            result = 0;
-          }
-          expectedAnswers << (n > 0 ? "," : "") << "\"" << searchPattern[n] << "\"" ;
+          result = 0;
         }
-        if(result != 0)
+        expectedAnswers << (n > 0 ? "," : "") << "\"" << searchPattern[n] << "\"" ;
+      }
+      if(result != 0)
+      {
+        if (cmdId == CMD_START_IMU_DATA)
         {
-          if (cmdId == CMD_START_IMU_DATA)
+          ROS_INFO_STREAM("IMU-Data transfer started. No checking of reply to avoid confusing with LMD Scandata\n");
+          result = 0;
+        }
+        else
+        {
+          if(answerStr.size() > 64)
           {
-            ROS_INFO_STREAM("IMU-Data transfer started. No checking of reply to avoid confusing with LMD Scandata\n");
-            result = 0;
+            answerStr.resize(64);
+            answerStr += "...";
           }
-          else
-          {
-            if(answerStr.size() > 64)
-            {
-              answerStr.resize(64);
-              answerStr += "...";
-            }
-            std::string tmpMsg = "Error Sopas answer mismatch: " + errString + ", received answer: \"" + answerStr + "\", expected patterns: " + expectedAnswers.str();
-            ROS_WARN_STREAM(tmpMsg);
-  #ifdef USE_DIAGNOSTIC_UPDATER
-            if(diagnostics_)
-              diagnostics_->broadcast(getDiagnosticErrorCode(), tmpMsg);
-  #endif
-            result = -1;
-
-            // Problably we received some scan data message. Ignore and try again...
-            std::vector<std::string> response_keywords = { sick_scan::SickScanMessages::getSopasCmdKeyword((uint8_t*)requestStr.data(), requestStr.size()) };
-            if(retry_answer_cnt < 100 && (rosNanosecTimestampNow() - retry_start_timestamp_nsec) / 1000000 < m_read_timeout_millisec_default)
-            {
-              char buffer[64*1024];
-              int bytes_read = 0;
-
-              int read_timeout_millisec = getReadTimeOutInMs(); // default timeout: 120 seconds (sensor may be starting up)
-              if (!reply->empty()) // sensor is up and running (i.e. responded with message), try again with 5 sec timeout
-                  read_timeout_millisec = m_read_timeout_millisec_default;
-              if (readWithTimeout(read_timeout_millisec, buffer, sizeof(buffer), &bytes_read, response_keywords) == ExitSuccess)
-              {
-                reply->resize(bytes_read);
-                std::copy(buffer, buffer + bytes_read, &(*reply)[0]);
-              }
-              else
-              {
-                reply->clear();
-              }
-            }
-            else
-            {
-              reply->clear();
-              ROS_ERROR_STREAM(errString << ", giving up after " << retry_answer_cnt << " unexpected answers.");
-              break;
-            }
-
-          }
+          std::string tmpMsg = "Error Sopas answer mismatch: " + errString + ", received answer: \"" + answerStr + "\", expected patterns: " + expectedAnswers.str();
+          ROS_WARN_STREAM(tmpMsg);
+#ifdef USE_DIAGNOSTIC_UPDATER
+          if(diagnostics_)
+            diagnostics_->broadcast(getDiagnosticErrorCode(), tmpMsg);
+#endif
+          result = -1;
         }
       }
-
     }
     return result;
-
   }
 
   int SickScanCommon::sendSopasAorBgetAnswer(const std::string& sopasCmd, std::vector<unsigned char> *reply, bool useBinaryCmd)
@@ -6042,6 +6009,3 @@ namespace sick_scan
   // SopasProtocol m_protocolId;
 
 } /* namespace sick_scan */
-
-
-
