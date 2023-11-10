@@ -2,6 +2,11 @@
 Changelog for package sick_scan
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.9.3 (2023-11-10)
+------------------
+* fix removed retry mechanism for SOPAS mismatch
+* Contributors: Berend Kupers
+
 2.9.2 (2023-09-19)
 ------------------
 * fix HardwareID
