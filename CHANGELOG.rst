@@ -2,6 +2,10 @@
 Changelog for package sick_scan
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.9.4 (2025-01-13)
+------------------
+* Remove force update (#5) [Yannick de Hoop]
+
 2.9.3 (2023-11-10)
 ------------------
 * fix removed retry mechanism for SOPAS mismatch

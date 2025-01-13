@@ -8,6 +8,10 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released
 
+### 2.9.4 - removed diagnostics force update
+
+  - **Fix** Remove force update
+
 ### 2.9.3 - removed retry mechanism for SOPAS mismatch
 
   - **Fix** removed retry mechanism for SOPAS mismatch
